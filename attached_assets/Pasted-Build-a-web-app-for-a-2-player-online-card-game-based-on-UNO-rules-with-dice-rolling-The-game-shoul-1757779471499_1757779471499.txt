@@ -1,0 +1,153 @@
+Build a web app for a 2-player online card game based on UNO rules with dice rolling. The game should have a clean, user-friendly interface and include all necessary game logic, interactions, and screens. Below are the detailed requirements:
+
+🎲 Game Concept
+
+The game is for 2 players, playing online.
+
+Each player starts with 6 number cards from 1 to 9 (like UNO number cards, no special cards).
+
+Players take turns rolling a dice (1–6).
+
+When a dice is rolled, the player can remove cards from their hand if they match the dice roll or sum to the dice roll.
+
+If no valid combination exists, the player draws a card from the deck.
+
+The first player to remove all their cards wins.
+
+🧑‍🤝‍🧑 User Flow
+
+Home Screen
+
+Two buttons: "Create Game" and "Join Game".
+
+If "Create Game" is chosen:
+
+The app generates a unique game code.
+
+The code is displayed clearly with instructions like “Share this code with your friend”.
+
+Shows “Waiting for opponent to join…” until another player connects.
+
+If "Join Game" is chosen:
+
+The player is prompted to enter a game code.
+
+On entering the correct code, they are connected to the game.
+
+Game Setup
+
+Both players enter their names.
+
+Optionally select an avatar or icon.
+
+Once both players are connected, the game starts immediately.
+
+🎮 Game Screen UI
+
+Layout
+
+A central area shows the current dice roll and the top card of the deck.
+
+Below that, a button labeled “Roll Dice”.
+
+A “Draw Card” button that activates only if the player cannot remove any cards.
+
+The bottom of the screen displays the player's hand with all cards visible.
+
+The top of the screen displays the opponent’s hand as card backs and shows the total number of cards they have.
+
+Player names and avatars are displayed near each hand.
+
+A turn indicator clearly shows whose turn it is.
+
+Cards
+
+Each card displays a number from 1 to 9 with bold colors.
+
+Cards are arranged neatly in a horizontal scroll view if needed.
+
+Clicking on your card selects it for removal if it’s a valid move.
+
+Opponent’s Cards
+
+Only the number of cards remaining is visible.
+
+Card backs are shown in a stack format or spread horizontally.
+
+Dice Roll
+
+When the “Roll Dice” button is pressed, the dice roll result is shown clearly in the central area.
+
+If the player has valid cards, they can select them to remove.
+
+If no valid cards are available, a message “No valid cards – draw a card” is shown.
+
+Game Messages
+
+Show messages like:
+
+“Waiting for opponent to join.”
+
+“Your turn.”
+
+“Opponent’s turn.”
+
+“You removed cards: [3, 1].”
+
+“No valid cards, drawing one card.”
+
+“You win!” or “Opponent wins!”
+
+End Game
+
+Once a player removes all their cards, the game shows a victory screen.
+
+Optionally, provide a “Play Again” or “Back to Home” button.
+
+📦 Game Logic Details
+
+Card Distribution
+
+At the start of the game, each player is randomly given 6 cards from a shuffled deck containing numbers 1 to 9.
+
+Turns
+
+Players alternate turns.
+
+Only the current player’s buttons are active.
+
+Dice Roll
+
+Generates a random number between 1 and 6.
+
+The player can remove any combination of cards that sums to the dice roll.
+
+Example: Dice roll = 4 → remove [4], or [1,3], or [2,2], etc.
+
+The player can choose which valid combination to remove.
+
+Drawing Cards
+
+If no valid move exists, the player must draw one card from the remaining deck.
+
+The deck is shuffled and cards are drawn from the top.
+
+Winning Condition
+
+The first player to have no cards left wins the game.
+
+Game State Sync
+
+All moves (rolls, card removals, draws) are synced in real time between players.
+
+🎨 UI Design Expectations
+
+Clean and minimalistic.
+
+Bold, colorful cards similar to UNO.
+
+Smooth, intuitive interactions.
+
+Clearly visible buttons for actions.
+
+Responsive layout that works across screen sizes.
