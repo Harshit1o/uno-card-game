@@ -99,9 +99,9 @@ export class GameLogic {
     const room = this.rooms.get(gameCode);
     if (!room) return;
 
-    // Create deck with numbers 1-9
+    // Create deck with numbers 1-6
     const fullDeck: number[] = [];
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 6; i++) {
       // Add multiple copies of each number to ensure enough cards
       fullDeck.push(i, i, i, i);
     }
