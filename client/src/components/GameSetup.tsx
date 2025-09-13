@@ -6,7 +6,7 @@ interface GameSetupProps {
   waitingForOpponent: boolean;
 }
 
-const AVATARS = ['🐵', '🐱', '🐸', '🦊', '🐺', '🦁', '🐯', '🐨'];
+const AVATARS = ['🐵', '🐱', '🐮', '🦊', '🐺', '🦁', '🐯', '🐨'];
 
 export const GameSetup: React.FC<GameSetupProps> = ({ 
   gameCode, 

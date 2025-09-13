@@ -7,6 +7,8 @@ import { GameSetup } from './components/GameSetup';
 import { GameBoard } from './components/GameBoard';
 import { VictoryScreen } from './components/VictoryScreen';
 import { ReconnectScreen } from './components/ReconnectScreen';
+import { WelcomeScreenOne } from './components/WelcomeScreenOne';
+import { WelcomeScreenTwo } from './components/WelcomeScreenTwo';
 
 function App() {
   const { socket, isConnected } = useSocket();
@@ -28,6 +30,7 @@ function App() {
   } = useGame(socket);
 
   const [showReconnectScreen, setShowReconnectScreen] = React.useState(false);
+  const [welcomeStage, setWelcomeStage] = React.useState<'first' | 'second' | 'done'>('first');
 
   // Initialize audio on first user interaction
   useEffect(() => {
@@ -71,6 +74,14 @@ function App() {
     reconnectToGame(gameCodeInput, playerName);
   };
 
+  const handleWelcomeOne = () => {
+    setWelcomeStage('second');
+  };
+
+  const handleWelcomeTwo = () => {
+    setWelcomeStage('done');
+  };
+
   // Show loading screen while connecting
   if (!isConnected) {
     return (
@@ -84,8 +95,17 @@ function App() {
     );
   }
 
-  // Show reconnect screen if requested
-  if (showReconnectScreen && !gameCode) {
+  // Show welcome screens first
+  if (welcomeStage === 'first') {
+    return <WelcomeScreenOne onContinue={handleWelcomeOne} />;
+  }
+
+  if (welcomeStage === 'second') {
+    return <WelcomeScreenTwo onContinue={handleWelcomeTwo} />;
+  }
+
+  // Show reconnect screen if requested and welcome stages are done
+  if (showReconnectScreen && !gameCode && welcomeStage === 'done') {
     return (
       <div className="relative">
         <ReconnectScreen 
@@ -104,8 +124,8 @@ function App() {
     );
   }
 
-  // Show home screen if no game code
-  if (!gameCode) {
+  // Show home screen if no game code and welcome stages are done
+  if (!gameCode && welcomeStage === 'done') {
     return (
       <div className="relative">
         <HomeScreen 
