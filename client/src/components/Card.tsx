@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAudio } from '../lib/stores/useAudio';
 
 interface CardProps {
   number: number;
@@ -27,18 +28,27 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   className = ''
 }) => {
+  const { playCardSelect } = useAudio();
+
+  const handleClick = () => {
+    if (isClickable && onClick) {
+      playCardSelect();
+      onClick();
+    }
+  };
+
   return (
     <div
       className={`
         w-16 h-24 rounded-lg border-2 border-white shadow-lg
         flex items-center justify-center text-white font-bold text-2xl
-        transition-all duration-200 cursor-pointer
+        transition-all duration-300 cursor-pointer
         ${CARD_COLORS[number as keyof typeof CARD_COLORS]}
-        ${isSelected ? 'ring-4 ring-yellow-400 transform -translate-y-2' : ''}
-        ${isClickable ? 'hover:transform hover:-translate-y-1 hover:shadow-xl' : ''}
+        ${isSelected ? 'ring-4 ring-yellow-400 transform -translate-y-2 scale-105' : ''}
+        ${isClickable ? 'hover:transform hover:-translate-y-1 hover:shadow-xl hover:scale-105' : ''}
         ${className}
       `}
-      onClick={isClickable ? onClick : undefined}
+      onClick={handleClick}
     >
       {number}
     </div>

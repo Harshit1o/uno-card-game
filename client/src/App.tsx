@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSocket } from './hooks/useSocket';
 import { useGame } from './hooks/useGame';
+import { useAudio } from './lib/stores/useAudio';
 import { HomeScreen } from './components/HomeScreen';
 import { GameSetup } from './components/GameSetup';
 import { GameBoard } from './components/GameBoard';
@@ -8,6 +9,7 @@ import { VictoryScreen } from './components/VictoryScreen';
 
 function App() {
   const { socket, isConnected } = useSocket();
+  const { initAudio, toggleMute, isMuted, playGameStart, playWin } = useAudio();
   const {
     gameState,
     gameCode,
@@ -20,6 +22,33 @@ function App() {
     drawCard,
     playAgain
   } = useGame(socket);
+
+  // Initialize audio on first user interaction
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      initAudio();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('keydown', handleFirstInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, [initAudio]);
+
+  // Play sounds based on game state changes
+  useEffect(() => {
+    if (gameState.phase === 'playing' && gameState.players.length === 2) {
+      playGameStart();
+    }
+    if (gameState.phase === 'ended' && gameState.winner) {
+      playWin();
+    }
+  }, [gameState.phase, gameState.players.length, gameState.winner, playGameStart, playWin]);
 
   const currentPlayer = gameState.players.find(p => p.id === currentPlayerId);
   const opponent = gameState.players.find(p => p.id !== currentPlayerId);
@@ -43,30 +72,63 @@ function App() {
 
   // Show home screen if no game code
   if (!gameCode) {
-    return <HomeScreen onCreateGame={createGame} onJoinGame={joinGame} />;
+    return (
+      <div className="relative">
+        <HomeScreen onCreateGame={createGame} onJoinGame={joinGame} />
+        {/* Audio controls */}
+        <button
+          onClick={toggleMute}
+          className="fixed top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 
+                     rounded-full p-3 shadow-lg transition-all z-50"
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
+    );
   }
 
   // Show setup screen while waiting for players or during setup
   if (gameState.phase === 'waiting' || gameState.phase === 'setup') {
     return (
-      <GameSetup
-        gameCode={gameCode}
-        onSetPlayerInfo={setPlayerInfo}
-        waitingForOpponent={gameState.players.length < 2}
-      />
+      <div className="relative">
+        <GameSetup
+          gameCode={gameCode}
+          onSetPlayerInfo={setPlayerInfo}
+          waitingForOpponent={gameState.players.length < 2}
+        />
+        <button
+          onClick={toggleMute}
+          className="fixed top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 
+                     rounded-full p-3 shadow-lg transition-all z-50"
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
     );
   }
 
   // Show game board during play
   if (gameState.phase === 'playing') {
     return (
-      <GameBoard
-        gameState={gameState}
-        currentPlayerId={currentPlayerId}
-        onRollDice={rollDice}
-        onSelectCards={selectCards}
-        onDrawCard={drawCard}
-      />
+      <div className="relative">
+        <GameBoard
+          gameState={gameState}
+          currentPlayerId={currentPlayerId}
+          onRollDice={rollDice}
+          onSelectCards={selectCards}
+          onDrawCard={drawCard}
+        />
+        <button
+          onClick={toggleMute}
+          className="fixed top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 
+                     rounded-full p-3 shadow-lg transition-all z-50"
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
     );
   }
 
@@ -75,7 +137,7 @@ function App() {
     const isWinner = currentPlayer?.name === gameState.winner;
     
     return (
-      <>
+      <div className="relative">
         <GameBoard
           gameState={gameState}
           currentPlayerId={currentPlayerId}
@@ -89,7 +151,15 @@ function App() {
           onPlayAgain={playAgain}
           onBackToHome={handleBackToHome}
         />
-      </>
+        <button
+          onClick={toggleMute}
+          className="fixed top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 
+                     rounded-full p-3 shadow-lg transition-all z-50"
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
     );
   }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAudio } from '../lib/stores/useAudio';
 
 interface DiceProps {
   value: number | null;
@@ -56,6 +57,7 @@ export const Dice: React.FC<DiceProps> = ({
 }) => {
   const [displayValue, setDisplayValue] = useState(value || 1);
   const [rolling, setRolling] = useState(false);
+  const { playDiceRoll } = useAudio();
 
   useEffect(() => {
     if (isRolling) {
@@ -78,6 +80,7 @@ export const Dice: React.FC<DiceProps> = ({
 
   const handleClick = () => {
     if (canRoll && onRoll) {
+      playDiceRoll();
       onRoll();
     }
   };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameState } from '../types/game';
 import { Card, CardBack } from './Card';
 import { Dice } from './Dice';
+import { useAudio } from '../lib/stores/useAudio';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -20,6 +21,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 }) => {
   const [selectedCardIndices, setSelectedCardIndices] = useState<number[]>([]);
   const [isRolling, setIsRolling] = useState(false);
+  const { playCardPlay } = useAudio();
 
   const currentPlayer = gameState.players.find(p => p.id === currentPlayerId);
   const opponent = gameState.players.find(p => p.id !== currentPlayerId);
@@ -54,6 +56,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const handlePlayCards = () => {
     if (selectedCardIndices.length > 0) {
+      playCardPlay();
       onSelectCards(selectedCardIndices);
       setSelectedCardIndices([]);
     }
