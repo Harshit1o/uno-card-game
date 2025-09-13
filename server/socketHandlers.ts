@@ -170,6 +170,71 @@ export function setupSocketHandlers(io: Server) {
       }
     });
 
+    socket.on('reconnect-to-game', ({ gameCode, playerName }: { gameCode: string; playerName: string }) => {
+      try {
+        const room = gameLogic.getRoom(gameCode);
+        
+        if (!room) {
+          socket.emit('reconnection-result', { success: false, message: 'Game not found' });
+          return;
+        }
+        
+        // Check if socket is already in a game room
+        if (currentGameCode) {
+          socket.emit('reconnection-result', { success: false, message: 'Already connected to a game' });
+          return;
+        }
+        
+        // Check if this socket is already a player in this room
+        const existingPlayer = room.players.find(p => p.id === socket.id);
+        if (existingPlayer) {
+          socket.emit('reconnection-result', { success: false, message: 'Socket already in this game' });
+          return;
+        }
+        
+        const player = gameLogic.findPlayerByName(gameCode, playerName);
+        
+        if (!player) {
+          socket.emit('reconnection-result', { success: false, message: 'Player not found in this game' });
+          return;
+        }
+        
+        // CRITICAL: Only allow reconnection if player is actually disconnected
+        if (player.isConnected) {
+          socket.emit('reconnection-result', { success: false, message: 'Player is still connected to the game' });
+          return;
+        }
+        
+        // Update player's socket ID and connection status
+        const oldId = player.id;
+        const reconnectedPlayer = gameLogic.reconnectPlayer(gameCode, oldId, socket.id);
+        
+        if (reconnectedPlayer) {
+          currentGameCode = gameCode;
+          socket.join(currentGameCode);
+          
+          socket.emit('reconnection-result', { success: true, message: 'Successfully reconnected' });
+          
+          // Notify other players that this player reconnected
+          socket.to(currentGameCode).emit('player-reconnected', {
+            playerName: reconnectedPlayer.name,
+            message: `${reconnectedPlayer.name} has reconnected`
+          });
+          
+          // Send current game state
+          const gameState = gameLogic.getGameState(currentGameCode);
+          io.to(currentGameCode).emit('game-state', gameState);
+          
+          console.log(`Player ${reconnectedPlayer.name} successfully reconnected to game ${gameCode}`);
+        } else {
+          socket.emit('reconnection-result', { success: false, message: 'Reconnection failed' });
+        }
+      } catch (error) {
+        console.error('Error handling reconnection:', error);
+        socket.emit('reconnection-result', { success: false, message: 'Reconnection failed' });
+      }
+    });
+
     socket.on('play-again', () => {
       if (!currentGameCode) {
         socket.emit('error', 'Not in a game');
@@ -189,11 +254,18 @@ export function setupSocketHandlers(io: Server) {
       console.log(`Player disconnected: ${socket.id}`);
       
       if (currentGameCode) {
-        // Notify other players in the room
-        socket.to(currentGameCode).emit('error', 'Opponent disconnected');
+        // Mark player as disconnected
+        gameLogic.handlePlayerDisconnect(currentGameCode, socket.id);
         
-        // Could implement reconnection logic here
-        // For now, we'll leave the room as is
+        // Notify other players in the room
+        socket.to(currentGameCode).emit('player-disconnected', {
+          message: 'Your opponent has disconnected. They can reconnect using their name and game code.',
+          showReconnectInfo: true
+        });
+        
+        // Send updated game state to remaining players
+        const gameState = gameLogic.getGameState(currentGameCode);
+        io.to(currentGameCode).emit('game-state', gameState);
       }
     });
   });

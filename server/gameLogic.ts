@@ -4,6 +4,8 @@ export interface Player {
   avatar: string;
   cards: number[];
   isReady: boolean;
+  isConnected: boolean;
+  lastSeen: Date;
 }
 
 export interface GameRoom {
@@ -66,7 +68,9 @@ export class GameLogic {
       name: '',
       avatar: '',
       cards: [],
-      isReady: false
+      isReady: false,
+      isConnected: true,
+      lastSeen: new Date()
     });
 
     return room;
@@ -272,6 +276,60 @@ export class GameLogic {
 
   removeRoom(gameCode: string): void {
     this.rooms.delete(gameCode);
+  }
+
+  // Handle player disconnection
+  handlePlayerDisconnect(gameCode: string, playerId: string): void {
+    const room = this.rooms.get(gameCode);
+    if (!room) return;
+
+    const player = room.players.find(p => p.id === playerId);
+    if (player) {
+      player.isConnected = false;
+      player.lastSeen = new Date();
+      console.log(`Player ${player.name || playerId} disconnected from game ${gameCode}`);
+    }
+  }
+
+  // Handle player reconnection
+  reconnectPlayer(gameCode: string, oldPlayerId: string, newSocketId: string): Player | null {
+    const room = this.rooms.get(gameCode);
+    if (!room) return null;
+
+    // Find player by old ID or by name if available
+    let player = room.players.find(p => p.id === oldPlayerId);
+    
+    if (!player) {
+      return null;
+    }
+
+    // Update the player's socket ID and connection status
+    player.id = newSocketId;
+    player.isConnected = true;
+    player.lastSeen = new Date();
+    
+    console.log(`Player ${player.name || oldPlayerId} reconnected to game ${gameCode} with new socket ${newSocketId}`);
+    return player;
+  }
+
+  // Find player by name for reconnection
+  findPlayerByName(gameCode: string, playerName: string): Player | null {
+    const room = this.rooms.get(gameCode);
+    if (!room) return null;
+
+    return room.players.find(p => p.name === playerName) || null;
+  }
+
+  // Update player connection status
+  updatePlayerConnection(gameCode: string, playerId: string, isConnected: boolean): void {
+    const room = this.rooms.get(gameCode);
+    if (!room) return;
+
+    const player = room.players.find(p => p.id === playerId);
+    if (player) {
+      player.isConnected = isConnected;
+      player.lastSeen = new Date();
+    }
   }
 
   // Clean up old rooms (called periodically)

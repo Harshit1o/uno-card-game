@@ -6,6 +6,7 @@ import { HomeScreen } from './components/HomeScreen';
 import { GameSetup } from './components/GameSetup';
 import { GameBoard } from './components/GameBoard';
 import { VictoryScreen } from './components/VictoryScreen';
+import { ReconnectScreen } from './components/ReconnectScreen';
 
 function App() {
   const { socket, isConnected } = useSocket();
@@ -14,14 +15,19 @@ function App() {
     gameState,
     gameCode,
     currentPlayerId,
+    disconnectMessage,
+    reconnectMessage,
     createGame,
     joinGame,
     setPlayerInfo,
     rollDice,
     selectCards,
     drawCard,
+    reconnectToGame,
     playAgain
   } = useGame(socket);
+
+  const [showReconnectScreen, setShowReconnectScreen] = React.useState(false);
 
   // Initialize audio on first user interaction
   useEffect(() => {
@@ -57,6 +63,14 @@ function App() {
     window.location.reload();
   };
 
+  const handleShowReconnectScreen = () => {
+    setShowReconnectScreen(true);
+  };
+
+  const handleReconnectAttempt = (gameCodeInput: string, playerName: string) => {
+    reconnectToGame(gameCodeInput, playerName);
+  };
+
   // Show loading screen while connecting
   if (!isConnected) {
     return (
@@ -70,11 +84,35 @@ function App() {
     );
   }
 
+  // Show reconnect screen if requested
+  if (showReconnectScreen && !gameCode) {
+    return (
+      <div className="relative">
+        <ReconnectScreen 
+          onReconnect={handleReconnectAttempt} 
+          onBackToHome={() => setShowReconnectScreen(false)} 
+        />
+        <button
+          onClick={toggleMute}
+          className="fixed top-4 right-4 bg-white bg-opacity-90 hover:bg-opacity-100 
+                     rounded-full p-3 shadow-lg transition-all z-50"
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
+    );
+  }
+
   // Show home screen if no game code
   if (!gameCode) {
     return (
       <div className="relative">
-        <HomeScreen onCreateGame={createGame} onJoinGame={joinGame} />
+        <HomeScreen 
+          onCreateGame={createGame} 
+          onJoinGame={joinGame} 
+          onReconnect={handleShowReconnectScreen} 
+        />
         {/* Audio controls */}
         <button
           onClick={toggleMute}
@@ -119,6 +157,8 @@ function App() {
           onRollDice={rollDice}
           onSelectCards={selectCards}
           onDrawCard={drawCard}
+          disconnectMessage={disconnectMessage}
+          reconnectMessage={reconnectMessage}
         />
         <button
           onClick={toggleMute}
@@ -144,6 +184,8 @@ function App() {
           onRollDice={rollDice}
           onSelectCards={selectCards}
           onDrawCard={drawCard}
+          disconnectMessage={disconnectMessage}
+          reconnectMessage={reconnectMessage}
         />
         <VictoryScreen
           winner={gameState.winner}

@@ -10,6 +10,8 @@ interface GameBoardProps {
   onRollDice: () => void;
   onSelectCards: (cardIndices: number[]) => void;
   onDrawCard: () => void;
+  disconnectMessage?: string;
+  reconnectMessage?: string;
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({
@@ -17,7 +19,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   currentPlayerId,
   onRollDice,
   onSelectCards,
-  onDrawCard
+  onDrawCard,
+  disconnectMessage,
+  reconnectMessage
 }) => {
   const [selectedCardIndices, setSelectedCardIndices] = useState<number[]>([]);
   const [isRolling, setIsRolling] = useState(false);
@@ -77,6 +81,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 p-4">
       <div className="max-w-4xl mx-auto">
+        {/* Connection Status Messages */}
+        {disconnectMessage && (
+          <div className="mb-4 bg-red-100 border-2 border-red-300 rounded-lg p-4 animate-pulse">
+            <p className="text-red-800 font-medium text-center">
+              ⚠️ {disconnectMessage}
+            </p>
+          </div>
+        )}
+        
+        {reconnectMessage && (
+          <div className="mb-4 bg-green-100 border-2 border-green-300 rounded-lg p-4">
+            <p className="text-green-800 font-medium text-center">
+              ✅ {reconnectMessage}
+            </p>
+          </div>
+        )}
+
         {/* Opponent Section */}
         <div className="mb-6">
           <div className="bg-white bg-opacity-90 rounded-xl p-4 shadow-lg">

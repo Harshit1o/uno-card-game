@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 interface HomeScreenProps {
   onCreateGame: () => void;
   onJoinGame: (gameCode: string) => void;
+  onReconnect: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onCreateGame, onJoinGame }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onCreateGame, onJoinGame, onReconnect }) => {
   const [gameCode, setGameCode] = useState('');
   const [showJoinForm, setShowJoinForm] = useState(false);
 
@@ -35,13 +36,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onCreateGame, onJoinGame
           </button>
 
           {!showJoinForm ? (
-            <button
-              onClick={() => setShowJoinForm(true)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 
-                       rounded-xl transform transition-all duration-200 hover:scale-105 shadow-lg"
-            >
-              🚪 Join Game
-            </button>
+            <>
+              <button
+                onClick={() => setShowJoinForm(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 
+                         rounded-xl transform transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                🚪 Join Game
+              </button>
+              
+              <button
+                onClick={onReconnect}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-6 
+                         rounded-xl transform transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                🔌 Reconnect
+              </button>
+            </>
           ) : (
             <form onSubmit={handleJoinGame} className="space-y-3">
               <input

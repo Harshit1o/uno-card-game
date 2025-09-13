@@ -20,6 +20,8 @@ export const useGame = (socket: Socket<SocketEvents> | null) => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [gameCode, setGameCode] = useState<string>('');
   const [currentPlayerId, setCurrentPlayerId] = useState<string>('');
+  const [disconnectMessage, setDisconnectMessage] = useState<string>('');
+  const [reconnectMessage, setReconnectMessage] = useState<string>('');
 
   useEffect(() => {
     if (!socket) return;
@@ -39,6 +41,36 @@ export const useGame = (socket: Socket<SocketEvents> | null) => {
 
     socket.on('game-state', (newGameState) => {
       setGameState(newGameState);
+      // Set game code from game state to handle reconnection navigation
+      if (newGameState.id && !gameCode) {
+        setGameCode(newGameState.id);
+      }
+    });
+
+    socket.on('player-disconnected', ({ message }) => {
+      setDisconnectMessage(message);
+      setTimeout(() => setDisconnectMessage(''), 5000);
+    });
+
+    socket.on('player-reconnected', ({ message }) => {
+      setReconnectMessage(message);
+      setTimeout(() => setReconnectMessage(''), 3000);
+    });
+
+    socket.on('reconnection-result', ({ success, message }) => {
+      if (success) {
+        // Update current player ID with new socket ID
+        setCurrentPlayerId(socket.id || '');
+        setReconnectMessage(message);
+        setTimeout(() => setReconnectMessage(''), 3000);
+      } else {
+        alert(`Reconnection failed: ${message}`);
+      }
+    });
+
+    // Update current player ID when socket reconnects
+    socket.on('connect', () => {
+      setCurrentPlayerId(socket.id || '');
     });
 
     socket.on('error', (message) => {
@@ -49,6 +81,9 @@ export const useGame = (socket: Socket<SocketEvents> | null) => {
       socket.off('game-created');
       socket.off('game-joined');
       socket.off('game-state');
+      socket.off('player-disconnected');
+      socket.off('player-reconnected');
+      socket.off('reconnection-result');
       socket.off('error');
     };
   }, [socket]);
@@ -78,6 +113,10 @@ export const useGame = (socket: Socket<SocketEvents> | null) => {
     socket?.emit('draw-card');
   };
 
+  const reconnectToGame = (gameCodeInput: string, playerName: string) => {
+    socket?.emit('reconnect-to-game', { gameCode: gameCodeInput, playerName });
+  };
+
   const playAgain = () => {
     socket?.emit('play-again');
   };
@@ -86,12 +125,15 @@ export const useGame = (socket: Socket<SocketEvents> | null) => {
     gameState,
     gameCode,
     currentPlayerId,
+    disconnectMessage,
+    reconnectMessage,
     createGame,
     joinGame,
     setPlayerInfo,
     rollDice,
     selectCards,
     drawCard,
+    reconnectToGame,
     playAgain
   };
 };
